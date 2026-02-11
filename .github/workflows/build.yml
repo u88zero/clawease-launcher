@@ -1,0 +1,46 @@
+name: Build and Release
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [windows-latest] # Focus on Windows for the Boss
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: install dependencies (Windows only)
+        if: matrix.platform == 'windows-latest'
+        run: |
+          # No extra deps needed for Windows typically
+
+      - name: install frontend dependencies
+        run: npm install
+
+      - name: build tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__ # tauri-action will replace this
+          releaseName: "ClawEase Pro Launcher v__VERSION__"
+          releaseBody: "Automated release of ClawEase Pro Launcher."
+          releaseDraft: true
+          prerelease: false
