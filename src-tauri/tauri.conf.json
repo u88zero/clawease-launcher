@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "projectsclawease-launcher",
+  "productName": "ClawEase-Pro",
   "version": "0.1.0",
   "identifier": "com.clawease.launcher",
   "build": {
@@ -10,9 +10,9 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "projectsclawease-launcher",
-        "width": 800,
-        "height": 600
+        "title": "ClawEase Pro - Operator Console",
+        "width": 1100,
+        "height": 720
       }
     ],
     "security": {
