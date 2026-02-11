@@ -89,5 +89,26 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  async function updateStats() {
+    try {
+      const stats = await invoke("get_system_stats");
+      document.querySelector("#stat-tokens .stat-value").innerText = `CPU ${stats.cpu_usage.toFixed(1)}%`;
+      document.querySelector("#stat-tokens .stat-meta").innerText = `RAM: ${(stats.memory_used / 1024).toFixed(1)}GB / ${(stats.memory_total / 1024).toFixed(1)}GB`;
+      
+      const statusDot = document.querySelector(".status-dot");
+      const statusText = document.querySelector(".sys-status span");
+      if (stats.openclaw_status === "Running") {
+        statusDot.style.background = "var(--success)";
+        statusText.innerText = "TONY V 在线";
+      } else {
+        statusDot.style.background = "var(--error)";
+        statusText.innerText = "核心已停止";
+      }
+    } catch (e) {
+      console.error("Failed to fetch stats", e);
+    }
+  }
+
+  setInterval(updateStats, 2000);
   loadConfig();
-});
+  updateStats();
