@@ -110,8 +110,7 @@
 
         .header-left {
             display: flex;
-            align-items: center;
-            gap: 12px;
+            align-items: center; gap: 12px;
         }
 
         .header-title {
@@ -412,10 +411,10 @@
         <div class="content-view active" id="view-dashboard">
             <!-- 统计卡片区 -->
             <div class="stats-grid">
-                <div class="stat-item">
+                <div class="stat-item" id="stat-tokens">
                     <div class="stat-label">上下文容量 (TOKEN)</div>
-                    <div class="stat-value">408,212 / 1.0M</div>
-                    <div class="stat-meta">使用率 40.8%</div>
+                    <div class="stat-value">0 / 0</div>
+                    <div class="stat-meta">使用率 0%</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">系统响应延迟</div>
@@ -427,10 +426,10 @@
                     <div class="stat-value">24 封邮件 / 16 条推送</div>
                     <div class="stat-meta">已节省 3.2 小时人力</div>
                 </div>
-                <div class="stat-item">
+                <div class="stat-item" id="stat-cost">
                     <div class="stat-label">API 调用成本</div>
-                    <div class="stat-value">$0.14</div>
-                    <div class="stat-meta">已切换至 Gemini-3-Flash</div>
+                    <div class="stat-value">$0.00</div>
+                    <div class="stat-meta">计费中</div>
                 </div>
             </div>
 
@@ -454,20 +453,21 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">TELEGRAM BOT TOKEN</label>
-                    <input type="password" class="form-input" value="1234567890:ABCDEF...">
+                    <input type="password" id="config-token" class="form-input" placeholder="Enter Bot Token">
                 </div>
                 <div class="form-group">
                     <label class="form-label">核心模型选择</label>
-                    <select class="form-input">
-                        <option>google/gemini-3-pro</option>
-                        <option>google/gemini-3-flash</option>
-                        <option>anthropic/claude-3-5-sonnet</option>
+                    <select id="config-model" class="form-input">
+                        <option value="google/gemini-3-pro">google/gemini-3-pro</option>
+                        <option value="google/gemini-3-flash">google/gemini-3-flash</option>
+                        <option value="anthropic/claude-3-5-sonnet">anthropic/claude-3-5-sonnet</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">QQ 邮箱授权码</label>
-                    <input type="password" class="form-input" value="nrfjezafciavbaic">
+                    <input type="password" id="config-email-key" class="form-input" placeholder="Enter SMTP Key">
                 </div>
+                <button class="main-btn btn-launch" id="save-config-btn" style="height: 40px; font-size: 0.9rem;">💾 保存配置</button>
             </div>
         </div>
 
@@ -539,51 +539,12 @@
 
         <!-- 底部动作条 -->
         <div class="footer-actions">
-            <button class="main-btn btn-utility">🔄 检查更新</button>
+            <button class="main-btn btn-utility" id="update-btn">🔄 检查更新</button>
             <button class="main-btn btn-launch" id="launch-btn">🚀 启动 TONY V 核心</button>
-            <button class="main-btn btn-utility">🛠️ 环境修复</button>
+            <button class="main-btn btn-utility" id="repair-btn">🛠️ 环境修复</button>
         </div>
     </div>
 
-    <script>
-        const launchBtn = document.getElementById('launch-btn');
-        const consoleBody = document.getElementById('pro-console');
-        const navItems = document.querySelectorAll('.nav-item[data-view]');
-        const views = document.querySelectorAll('.content-view');
-
-        // 视图切换逻辑
-        navItems.forEach(item => {
-            item.onclick = () => {
-                const targetView = item.getAttribute('data-view');
-                navItems.forEach(i => i.classList.remove('active'));
-                views.forEach(v => v.classList.remove('active'));
-                
-                item.classList.add('active');
-                const target = document.getElementById(`view-${targetView}`);
-                if (target) target.classList.add('active');
-            };
-        });
-
-        function log(msg, type='INFO') {
-            const time = new Date().toLocaleTimeString();
-            const line = document.createElement('div');
-            line.className = 'log-line';
-            line.innerHTML = `<span class="log-ts">[${time}]</span> <span class="log-tag tag-${type.toLowerCase()}">[${type}]</span> ${msg}`;
-            consoleBody.appendChild(line);
-            consoleBody.scrollTop = consoleBody.scrollHeight;
-        }
-
-        launchBtn.onclick = () => {
-            log('正在执行暴力越狱安装策略...', 'INFO');
-            setTimeout(() => log('检测到 TLS 1.2 已开启。', 'SUCCESS'), 600);
-            setTimeout(() => log('正在拉取 OpenClaw v2026.2.9 核心...', 'INFO'), 1200);
-            setTimeout(() => log('正在配置本地代理隧道...', 'INFO'), 1800);
-            setTimeout(() => log('代理成功：已绕过网络阻塞。', 'SUCCESS'), 2400);
-            setTimeout(() => log('Tony V 已在 Telegram 终端上线！', 'SUCCESS'), 3000);
-            
-            launchBtn.innerText = '🛑 停止运行';
-            launchBtn.style.background = 'var(--error)';
-        };
-    </script>
+    <script type="module" src="/main.js"></script>
 </body>
 </html>
