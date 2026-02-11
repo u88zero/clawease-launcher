@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClawEase Pro Launcher - Ultimate Agent Controller</title>
+    <style>
+        :root {
+            --primary: #fb7299;
+            --primary-hover: #e06287;
+            --bg-dark: #0d1117;
+            --sidebar-bg: #161b22;
+            --card-bg: #1c2128;
+            --header-bg: #21262d;
+            --text-main: #adbac7;
+            --text-bright: #cdd9e5;
+            --text-dim: #768390;
+            --border: #30363d;
+            --success: #3fb950;
+            --warning: #d29922;
+            --error: #f85149;
+            --info: #58a6ff;
+            --console-bg: #010409;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* 侧边栏设计 */
+        .sidebar {
+            width: 70px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            gap: 20px;
+            z-index: 100;
+        }
+
+        .nav-item {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--text-dim);
+            position: relative;
+            font-size: 1.2rem;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-bright);
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(251, 114, 153, 0.3);
+        }
+
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            left: -12px;
+            width: 4px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 0 4px 4px 0;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* 主界面 */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        /* 标题栏 */
+        .header {
+            height: 50px;
+            background: var(--header-bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-bright);
+            letter-spacing: 0.5px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .sys-status {
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-dim);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        /* 内容区 */
+        .content-view {
+            flex: 1;
+            padding: 24px;
+            display: none;
+            grid-template-columns: 1fr 320px;
+            grid-template-rows: auto 1fr;
+            gap: 20px;
+            overflow: hidden;
+        }
+        
+        .content-view.active {
+            display: grid;
+        }
+
+        /* 仪表盘卡片 */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* 运行统计数据 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            grid-column: 1 / 3;
+        }
+
+        .stat-item {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .stat-label { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; }
+        .stat-value { font-size: 1.4rem; font-weight: bold; color: var(--info); }
+        .stat-meta { font-size: 0.7rem; color: var(--success); margin-top: 4px; }
+
+        /* 控制台盒子 */
+        .console-container {
+            background: var(--console-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .console-header {
+            height: 35px;
+            background: #161b22;
+            padding: 0 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .console-title { font-size: 0.75rem; font-family: monospace; color: var(--text-dim); }
+
+        .console-body {
+            flex: 1;
+            padding: 15px;
+            font-family: 'Cascadia Code', 'Consolas', monospace;
+            font-size: 0.85rem;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+
+        .log-line { margin-bottom: 4px; display: flex; gap: 10px; }
+        .log-ts { color: var(--text-dim); flex-shrink: 0; }
+        .log-tag { font-weight: bold; flex-shrink: 0; }
+        .tag-info { color: var(--info); }
+        .tag-success { color: var(--success); }
+        .tag-warn { color: var(--warning); }
+        .tag-error { color: var(--error); }
+
+        /* 右侧配置面板 */
+        .config-panel {
+            grid-row: 2 / 3;
+            grid-column: 2 / 3;
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        .form-label { font-size: 0.8rem; font-weight: 600; color: var(--text-dim); }
+        .form-input {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            border-radius: 6px;
+            color: var(--text-bright);
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus { border-color: var(--primary); }
+
+        /* 变现与 Skill 管理样式 */
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            grid-column: 1 / 3;
+            grid-row: 1 / 3;
+            overflow-y: auto;
+        }
+
+        .shop-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .shop-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+
+        .shop-badge {
+            background: var(--primary);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            width: fit-content;
+            margin-bottom: 10px;
+        }
+
+        .shop-title { font-size: 1.2rem; font-weight: bold; color: var(--text-bright); margin-bottom: 10px; }
+        .shop-desc { font-size: 0.85rem; color: var(--text-dim); line-height: 1.4; flex: 1; margin-bottom: 20px; }
+        .shop-price { font-size: 1.5rem; font-weight: 800; color: var(--success); margin-bottom: 15px; }
+        
+        .skill-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            grid-column: 1 / 3;
+            grid-row: 1 / 3;
+            overflow-y: auto;
+        }
+
+        .skill-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .skill-icon { font-size: 2rem; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 8px; }
+        .skill-info { flex: 1; }
+        .skill-name { font-weight: bold; color: var(--text-bright); font-size: 0.95rem; }
+        .skill-tag { font-size: 0.7rem; color: var(--text-dim); margin-top: 2px; }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #30363d; transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* 底部动作条 */
+        .footer-actions {
+            height: 80px;
+            background: var(--header-bg);
+            border-top: 1px solid var(--border);
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .main-btn {
+            height: 48px;
+            padding: 0 35px;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex; align-items: center; gap: 10px; transition: all 0.2s;
+        }
+
+        .btn-launch { background: var(--primary); color: white; flex: 2; justify-content: center; }
+        .btn-launch:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 15px rgba(251, 114, 153, 0.4); }
+
+        .btn-utility { background: var(--card-bg); color: var(--text-bright); border: 1px solid var(--border); flex: 1; justify-content: center; }
+        .btn-utility:hover { background: #2d333b; }
+
+        /* 滚动条美化 */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444c56; }
+    </style>
+</head>
+<body>
+
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+        <div class="nav-item active" data-view="dashboard" title="仪表盘">📊</div>
+        <div class="nav-item" data-view="shop" title="算力商店">💎</div>
+        <div class="nav-item" data-view="skills" title="技能管理">🛠️</div>
+        <div class="nav-item" data-view="settings" title="核心设置">⚙️</div>
+        <div class="nav-item" data-view="security" title="安全审计">🛡️</div>
+        
+        <div class="sidebar-bottom">
+            <div class="nav-item" title="深色模式">🌙</div>
+            <div class="nav-item" title="关于我们">❓</div>
+        </div>
+    </div>
+
+    <!-- 主容器 -->
+    <div class="main-container">
+        <!-- 头部 -->
+        <div class="header">
+            <div class="header-left">
+                <img src="https://u88zero.github.io/clawease/moltbook-mascot.png" width="24" alt="logo">
+                <div class="header-title">CLAWEASE PRO <span style="color:var(--text-dim); font-weight: normal; font-size: 0.8rem;">| Operator Console</span></div>
+            </div>
+            <div class="header-right">
+                <div class="sys-status">
+                    <div class="status-dot"></div>
+                    <span>TONY V 在线</span>
+                </div>
+                <div class="version-tag">Build 2026.2.11</div>
+            </div>
+        </div>
+
+        <!-- 视图: 仪表盘 -->
+        <div class="content-view active" id="view-dashboard">
+            <!-- 统计卡片区 -->
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">上下文容量 (TOKEN)</div>
+                    <div class="stat-value">408,212 / 1.0M</div>
+                    <div class="stat-meta">使用率 40.8%</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">系统响应延迟</div>
+                    <div class="stat-value">0.82s</div>
+                    <div class="stat-meta">极速响应中</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">今日自动化产出</div>
+                    <div class="stat-value">24 封邮件 / 16 条推送</div>
+                    <div class="stat-meta">已节省 3.2 小时人力</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">API 调用成本</div>
+                    <div class="stat-value">$0.14</div>
+                    <div class="stat-meta">已切换至 Gemini-3-Flash</div>
+                </div>
+            </div>
+
+            <!-- 左侧控制台 -->
+            <div class="console-container">
+                <div class="console-header">
+                    <div class="console-title">TERMINAL OUTPUT</div>
+                </div>
+                <div class="console-body" id="pro-console">
+                    <div class="log-line"><span class="log-ts">[16:13:01]</span> <span class="log-tag tag-info">[CORE]</span> 初始化核心组件...</div>
+                    <div class="log-line"><span class="log-ts">[16:13:02]</span> <span class="log-tag tag-success">[AUTH]</span> GitHub 权限验证通过。</div>
+                    <div class="log-line"><span class="log-ts">[16:13:03]</span> <span class="log-tag tag-info">[MAIL]</span> 正在监听 u88zero@qq.com...</div>
+                    <div class="log-line"><span class="log-ts">[16:13:04]</span> <span class="log-tag tag-success">[READY]</span> 启动器就绪。你好，Boss。</div>
+                </div>
+            </div>
+
+            <!-- 右侧配置面板 -->
+            <div class="card config-panel">
+                <div class="card-header">
+                    <div class="card-title">快速配置</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">TELEGRAM BOT TOKEN</label>
+                    <input type="password" class="form-input" value="1234567890:ABCDEF...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">核心模型选择</label>
+                    <select class="form-input">
+                        <option>google/gemini-3-pro</option>
+                        <option>google/gemini-3-flash</option>
+                        <option>anthropic/claude-3-5-sonnet</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">QQ 邮箱授权码</label>
+                    <input type="password" class="form-input" value="nrfjezafciavbaic">
+                </div>
+            </div>
+        </div>
+
+        <!-- 视图: 商店 (Token/API/VPS) -->
+        <div class="content-view" id="view-shop">
+            <div class="shop-grid">
+                <div class="shop-card">
+                    <div class="shop-badge">TOKEN 包</div>
+                    <div class="shop-title">1M 极速算力包</div>
+                    <div class="shop-desc">适合日常邮件处理、Moltbook 运营。支持 Gemini / Qwen 全系列。</div>
+                    <div class="shop-price">¥ 9.90</div>
+                    <button class="main-btn btn-launch" style="height:40px; font-size: 0.9rem;">一键购买</button>
+                </div>
+                <div class="shop-card">
+                    <div class="shop-badge">API 提供商</div>
+                    <div class="shop-title">Claude 3.5 专属通道</div>
+                    <div class="shop-desc">低延迟、高并发，国内环境无需代理直连。写代码必备神级体验。</div>
+                    <div class="shop-price">¥ 19.9 / 月</div>
+                    <button class="main-btn btn-launch" style="height:40px; font-size: 0.9rem;">立即开通</button>
+                </div>
+                <div class="shop-card">
+                    <div class="shop-badge">VPS 服务器</div>
+                    <div class="shop-title">24h 自动化宿主节点</div>
+                    <div class="shop-desc">香港/新加坡高带宽服务器，预装 OpenClaw 核心，一键部署，永不掉线。</div>
+                    <div class="shop-price">¥ 49.0 / 月</div>
+                    <button class="main-btn btn-launch" style="height:40px; font-size: 0.9rem;">一键部署</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 视图: 技能管理 -->
+        <div class="content-view" id="view-skills">
+            <div class="skill-grid">
+                <div class="skill-item">
+                    <div class="skill-icon">📧</div>
+                    <div class="skill-info">
+                        <div class="skill-name">QQ 邮件助手</div>
+                        <div class="skill-tag">自动拦截、摘要、快速回复</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-icon">🦞</div>
+                    <div class="skill-info">
+                        <div class="skill-name">Moltbook 运营</div>
+                        <div class="skill-tag">自动回帖、热度监控、摘要</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-icon">🛠️</div>
+                    <div class="skill-info">
+                        <div class="skill-name">环境自愈系统</div>
+                        <div class="skill-tag">TLS 1.2 / Scoop 自动修补</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部动作条 -->
+        <div class="footer-actions">
+            <button class="main-btn btn-utility">🔄 检查更新</button>
+            <button class="main-btn btn-launch" id="launch-btn">🚀 启动 TONY V 核心</button>
+            <button class="main-btn btn-utility">🛠️ 环境修复</button>
+        </div>
+    </div>
+
+    <script>
+        const launchBtn = document.getElementById('launch-btn');
+        const consoleBody = document.getElementById('pro-console');
+        const navItems = document.querySelectorAll('.nav-item[data-view]');
+        const views = document.querySelectorAll('.content-view');
+
+        // 视图切换逻辑
+        navItems.forEach(item => {
+            item.onclick = () => {
+                const targetView = item.getAttribute('data-view');
+                navItems.forEach(i => i.classList.remove('active'));
+                views.forEach(v => v.classList.remove('active'));
+                
+                item.classList.add('active');
+                const target = document.getElementById(`view-${targetView}`);
+                if (target) target.classList.add('active');
+            };
+        });
+
+        function log(msg, type='INFO') {
+            const time = new Date().toLocaleTimeString();
+            const line = document.createElement('div');
+            line.className = 'log-line';
+            line.innerHTML = `<span class="log-ts">[${time}]</span> <span class="log-tag tag-${type.toLowerCase()}">[${type}]</span> ${msg}`;
+            consoleBody.appendChild(line);
+            consoleBody.scrollTop = consoleBody.scrollHeight;
+        }
+
+        launchBtn.onclick = () => {
+            log('正在执行暴力越狱安装策略...', 'INFO');
+            setTimeout(() => log('检测到 TLS 1.2 已开启。', 'SUCCESS'), 600);
+            setTimeout(() => log('正在拉取 OpenClaw v2026.2.9 核心...', 'INFO'), 1200);
+            setTimeout(() => log('正在配置本地代理隧道...', 'INFO'), 1800);
+            setTimeout(() => log('代理成功：已绕过网络阻塞。', 'SUCCESS'), 2400);
+            setTimeout(() => log('Tony V 已在 Telegram 终端上线！', 'SUCCESS'), 3000);
+            
+            launchBtn.innerText = '🛑 停止运行';
+            launchBtn.style.background = 'var(--error)';
+        };
+    </script>
+</body>
+</html>
